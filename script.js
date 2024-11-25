@@ -88,11 +88,19 @@ function calculateStandings() {
 
       // Check head-to-head
       const headToHeadResults = calculateHeadToHead(tiedTeams);
-      if (!headToHeadResults || headToHeadResults.some(team => team.tie)) {
+      if (headToHeadResults.tie) {
         // Unresolved tie; assign same rank
         tiedTeams.forEach(team => rankedTeams.push({ team, points: teams[i].points, rank: `T-${rank}` }));
         i += tiedTeams.length - 1;
         rank += tiedTeams.length;
+        continue;
+      } else {
+        // Resolved tie
+        headToHeadResults.standings.forEach(({ team }) =>
+          rankedTeams.push({ team, points: teams[i].points, rank })
+        );
+        rank += headToHeadResults.standings.length;
+        i += headToHeadResults.standings.length - 1;
         continue;
       }
     }
@@ -106,18 +114,28 @@ function calculateStandings() {
 }
 
 function calculateHeadToHead(tiedTeams) {
-  const subsetResults = tiedTeams.map(team => ({
-    team,
-    wins: 0,
-    tie: false,
-  }));
+  const scores = Object.fromEntries(tiedTeams.map(team => [team, 0]));
 
-  // Check all matchups between tied teams
-  tiedTeams.forEach((teamA, i) => {
-    tiedTeams.slice(i + 1).forEach(teamB => {
-      const matchup = matchupHistory.find(
-        result =>
-          result.includes(`${teamA} vs ${teamB}`) || result.includes(`${teamB} vs ${teamA}`)
-      );
-      team.tie = "tie";}
-``
+  // Extract relevant matchups
+  matchupHistory.forEach(matchup => {
+    tiedTeams.forEach(teamA => {
+      tiedTeams.forEach(teamB => {
+        if (teamA !== teamB && matchup.includes(`${teamA} vs ${teamB}`)) {
+          const winner = matchup.split(': ')[1].split(' ')[0];
+          if (winner === teamA) scores[teamA]++;
+        }
+      });
+    });
+  });
+
+  const sortedScores = Object.entries(scores).sort(([, a], [, b]) => b - a);
+  if (sortedScores[0][1] === sortedScores[sortedScores.length - 1][1]) {
+    // All tied
+    return { tie: true };
+  }
+
+  return {
+    tie: false,
+    standings: sortedScores.map(([team]) => ({ team })),
+  };
+}
