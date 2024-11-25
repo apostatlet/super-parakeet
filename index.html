@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Round Robin Preference PWA</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <h1>Round Robin Preference App</h1>
+    <div id="input-section">
+      <textarea id="input-list" placeholder="Enter your items, separated by commas"></textarea>
+      <button id="start-button">Start</button>
+    </div>
+    <div id="matchup-section" style="display: none;">
+      <h2 id="matchup-title"></h2>
+      <button id="option-a"></button>
+      <button id="option-b"></button>
+    </div>
+    <div id="results-section" style="display: none;">
+      <h2>Final Standings</h2>
+      <ol id="standings"></ol>
+      <h2>Matchup Results</h2>
+      <ul id="matchup-results"></ul>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
