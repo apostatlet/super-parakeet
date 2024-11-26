@@ -79,35 +79,35 @@ function calculateStandings() {
   // Handle ties
   let rank = 1;
   const rankedTeams = [];
-  for (let i = 0; i < teams.length; i++) {
-    if (i > 0 && teams[i].points === teams[i - 1].points) {
-      const tiedTeams = [teams[i - 1].team, teams[i].team];
-      for (let j = i + 1; j < teams.length && teams[j].points === teams[i].points; j++) {
-        tiedTeams.push(teams[j].team);
-      }
+  const processedTeams = new Set();
 
+  for (let i = 0; i < teams.length; i++) {
+    if (processedTeams.has(teams[i].team)) continue; // Skip already processed teams
+
+    const tiedTeams = teams.filter(t => t.points === teams[i].points && !processedTeams.has(t.team));
+    if (tiedTeams.length > 1) {
       // Check head-to-head
-      const headToHeadResults = calculateHeadToHead(tiedTeams);
+      const headToHeadResults = calculateHeadToHead(tiedTeams.map(t => t.team));
       if (headToHeadResults.tie) {
         // Unresolved tie; assign same rank
-        tiedTeams.forEach(team => rankedTeams.push({ team, points: teams[i].points, rank: `T-${rank}` }));
-        i += tiedTeams.length - 1;
-        rank += tiedTeams.length;
-        continue;
+        tiedTeams.forEach(team => {
+          rankedTeams.push({ team: team.team, points: team.points, rank: `T-${rank}` });
+          processedTeams.add(team.team);
+        });
       } else {
         // Resolved tie
-        headToHeadResults.standings.forEach(({ team }) =>
-          rankedTeams.push({ team, points: teams[i].points, rank })
-        );
-        rank += headToHeadResults.standings.length;
-        i += headToHeadResults.standings.length - 1;
-        continue;
+        headToHeadResults.standings.forEach(({ team }) => {
+          rankedTeams.push({ team, points: teams[i].points, rank });
+          processedTeams.add(team);
+        });
       }
+      rank += tiedTeams.length;
+    } else {
+      // No tie
+      rankedTeams.push({ team: teams[i].team, points: teams[i].points, rank });
+      processedTeams.add(teams[i].team);
+      rank++;
     }
-
-    // No tie or resolved tie
-    rankedTeams.push({ team: teams[i].team, points: teams[i].points, rank });
-    rank++;
   }
 
   return rankedTeams;
@@ -117,14 +117,18 @@ function calculateHeadToHead(tiedTeams) {
   const scores = Object.fromEntries(tiedTeams.map(team => [team, 0]));
 
   // Extract relevant matchups
-  matchupHistory.forEach(matchup => {
-    tiedTeams.forEach(teamA => {
-      tiedTeams.forEach(teamB => {
-        if (teamA !== teamB && matchup.includes(`${teamA} vs ${teamB}`)) {
+  tiedTeams.forEach(teamA => {
+    tiedTeams.forEach(teamB => {
+      if (teamA !== teamB) {
+        const matchup = matchupHistory.find(
+          result =>
+            result.includes(`${teamA} vs ${teamB}`) || result.includes(`${teamB} vs ${teamA}`)
+        );
+        if (matchup) {
           const winner = matchup.split(': ')[1].split(' ')[0];
           if (winner === teamA) scores[teamA]++;
         }
-      });
+      }
     });
   });
 
