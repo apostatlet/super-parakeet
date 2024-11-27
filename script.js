@@ -111,18 +111,17 @@ function calculateStandings() {
     }
   }
 
-  // Adjust ranks to avoid skipped positions
+  // Finalize ranks to ensure proper order
   let currentRank = 1;
-  for (let i = 0; i < rankedTeams.length; i++) {
-    if (!rankedTeams[i].rank.toString().startsWith("T-")) {
-      rankedTeams[i].rank = currentRank;
-      currentRank++;
+  rankedTeams.forEach((team, idx) => {
+    if (typeof team.rank === "string" && team.rank.startsWith("T-")) {
+      const groupSize = rankedTeams.filter(t => t.rank === team.rank).length;
+      currentRank += groupSize - 1; // Adjust for group size
     } else {
-      // Adjust for tied groups
-      const groupSize = rankedTeams.filter(t => t.rank === rankedTeams[i].rank).length;
-      currentRank += groupSize;
+      team.rank = currentRank;
+      currentRank++;
     }
-  }
+  });
 
   return rankedTeams;
 }
