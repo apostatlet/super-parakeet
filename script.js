@@ -94,15 +94,15 @@ function calculateStandings() {
           rankedTeams.push({ team: team.team, points: team.points, rank: `T-${rank}` });
           processedTeams.add(team.team);
         });
+        rank += tiedTeams.length;
       } else {
         // Resolved tie
         headToHeadResults.standings.forEach(({ team }, idx) => {
           rankedTeams.push({ team, points: teams[i].points, rank: rank + idx });
           processedTeams.add(team);
         });
-        rank += headToHeadResults.standings.length - 1;
+        rank += headToHeadResults.standings.length;
       }
-      rank += tiedTeams.length;
     } else {
       // No tie
       rankedTeams.push({ team: teams[i].team, points: teams[i].points, rank });
@@ -111,12 +111,16 @@ function calculateStandings() {
     }
   }
 
-  // Correctly increment rank after processing tied or grouped teams
-  for (let i = 1; i < rankedTeams.length; i++) {
-    if (!rankedTeams[i].rank.toString().startsWith("T-")) {
-      rankedTeams[i].rank = parseInt(rankedTeams[i - 1].rank) + 1;
+  // Adjust ranks to avoid skipped positions
+  let currentRank = 1;
+  rankedTeams.forEach((team, idx) => {
+    if (!team.rank.toString().startsWith("T-")) {
+      team.rank = currentRank;
+      currentRank++;
+    } else {
+      currentRank += team.rank.split('T-')[1].length - 1;
     }
-  }
+  });
 
   return rankedTeams;
 }
