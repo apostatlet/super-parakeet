@@ -94,7 +94,7 @@ function calculateStandings() {
           rankedTeams.push({ team: team.team, points: team.points, rank: `T-${rank}` });
           processedTeams.add(team.team);
         });
-        rank += tiedTeams.length; // Skip all ranks occupied by the tied group
+        rank += tiedTeams.length; // Move to the next rank after the tied group
       } else {
         // Resolved tie
         headToHeadResults.standings.forEach(({ team }, idx) => {
@@ -110,18 +110,6 @@ function calculateStandings() {
       rank++;
     }
   }
-
-  // Ensure proper rank adjustment for sequential teams
-  let nextRank = 1;
-  rankedTeams.forEach((team, idx) => {
-    if (typeof team.rank === "string" && team.rank.startsWith("T-")) {
-      const tiedGroupSize = rankedTeams.filter(t => t.rank === team.rank).length;
-      nextRank += tiedGroupSize - 1; // Reserve ranks for tied group
-    } else {
-      team.rank = nextRank;
-    }
-    nextRank++;
-  });
 
   return rankedTeams;
 }
