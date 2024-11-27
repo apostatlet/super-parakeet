@@ -96,10 +96,11 @@ function calculateStandings() {
         });
       } else {
         // Resolved tie
-        headToHeadResults.standings.forEach(({ team }) => {
-          rankedTeams.push({ team, points: teams[i].points, rank });
+        headToHeadResults.standings.forEach(({ team }, idx) => {
+          rankedTeams.push({ team, points: teams[i].points, rank: rank + idx });
           processedTeams.add(team);
         });
+        rank += headToHeadResults.standings.length - 1;
       }
       rank += tiedTeams.length;
     } else {
