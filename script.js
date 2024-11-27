@@ -111,6 +111,13 @@ function calculateStandings() {
     }
   }
 
+  // Correctly increment rank after processing tied or grouped teams
+  for (let i = 1; i < rankedTeams.length; i++) {
+    if (!rankedTeams[i].rank.toString().startsWith("T-")) {
+      rankedTeams[i].rank = parseInt(rankedTeams[i - 1].rank) + 1;
+    }
+  }
+
   return rankedTeams;
 }
 
